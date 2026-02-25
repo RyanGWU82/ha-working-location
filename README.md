@@ -1,6 +1,6 @@
 # Google Calendar Working Location
 
-<img src="custom_components/working_location/images/icon@4x.png" alt="Google Calendar Working Location icon" width="120">
+<img src="custom_components/working_location/images/icon@4x.png" alt="Google Calendar Working Location icon" width="256">
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
