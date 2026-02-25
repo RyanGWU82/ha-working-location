@@ -40,8 +40,13 @@ class WorkingLocationFlowHandler(
 
     @property
     def extra_authorize_data(self) -> dict[str, str]:
-        """Return extra parameters to pass to the authorize URL."""
-        return {"scope": OAUTH2_SCOPE}
+        """Return extra parameters to pass to the authorize URL.
+
+        access_type=offline is required for Google to issue a refresh token.
+        Without it the access token expires after 1 hour and can never be
+        refreshed, breaking the integration permanently until re-auth.
+        """
+        return {"scope": OAUTH2_SCOPE, "access_type": "offline"}
 
     async def async_oauth_create_entry(self, data: dict[str, Any]) -> Any:
         """Create the config entry after successful OAuth."""
@@ -53,21 +58,18 @@ class WorkingLocationFlowHandler(
     @staticmethod
     def async_get_options_flow(config_entry: ConfigEntry) -> WorkingLocationOptionsFlow:
         """Return the options flow handler."""
-        return WorkingLocationOptionsFlow(config_entry)
+        return WorkingLocationOptionsFlow()
 
 
 class WorkingLocationOptionsFlow(OptionsFlow):
     """Handle options for Working Location (calendar ID, update interval, etc.)."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialise the options flow."""
-        self._config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> Any:
         """Show the options form."""
-        current = self._config_entry.options
+        # self.config_entry is injected automatically by HA's flow manager.
+        current = self.config_entry.options
 
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
