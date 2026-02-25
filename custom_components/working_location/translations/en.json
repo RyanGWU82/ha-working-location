@@ -1,0 +1,34 @@
+{
+  "config": {
+    "step": {
+      "pick_implementation": {
+        "title": "Authenticate with Google"
+      }
+    },
+    "abort": {
+      "already_configured": "This Google account is already configured.",
+      "oauth_error": "OAuth error occurred. Please check your credentials and try again.",
+      "missing_configuration": "Application credentials have not been configured. Please add them under Settings \u2192 Application Credentials."
+    },
+    "error": {
+      "oauth_failed": "OAuth authorization failed. Please try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Working Location Options",
+        "data": {
+          "calendar_id": "Calendar ID",
+          "update_interval": "Update interval (minutes)",
+          "consider_none_outside_hours": "Return 'none' state outside working hours"
+        },
+        "data_description": {
+          "calendar_id": "Google Calendar ID to read working location from. Use 'primary' for your primary calendar.",
+          "update_interval": "How often to poll Google Calendar for changes (minimum 1 minute).",
+          "consider_none_outside_hours": "When enabled, working location state is 'none' if no event covers the current time (useful in the evenings or on weekends)."
+        }
+      }
+    }
+  }
+}
