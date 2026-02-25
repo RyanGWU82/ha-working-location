@@ -1,7 +1,7 @@
 {
   "domain": "working_location",
   "name": "Google Calendar Working Location",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "codeowners": [],
   "requirements": [],
   "dependencies": ["application_credentials"],
