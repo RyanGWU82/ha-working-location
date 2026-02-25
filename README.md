@@ -1,5 +1,7 @@
 # Google Calendar Working Location
 
+<img src="custom_components/working_location/images/icon@4x.png" alt="Google Calendar Working Location icon" width="120">
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
 A Home Assistant custom integration that exposes your **Google Calendar working location** as a sensor. When you set your working location in Google Calendar (Home, Office, or a custom location), this integration reflects it in real time.
