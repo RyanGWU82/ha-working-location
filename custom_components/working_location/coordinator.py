@@ -161,7 +161,9 @@ def _extract_state_and_attrs(
         attrs["homeOffice"] = wlp["homeOffice"]
 
     if "customLocation" in wlp:
-        attrs["customLocation_label"] = wlp["customLocation"].get("label")
+        cl = wlp["customLocation"]
+        if "label" in cl:
+            attrs["customLocation_label"] = cl["label"]
 
     if "officeLocation" in wlp:
         ol: dict[str, Any] = wlp["officeLocation"]

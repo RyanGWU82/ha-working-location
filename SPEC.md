@@ -68,6 +68,25 @@ Repo root:
 * `coordinator.py` (DataUpdateCoordinator + parsing)
 * `sensor.py` (SensorEntity, state + attributes mapping)
 * `strings.json` / `translations/en.json` (UI text)
+# Testing strategy
+Tests live in `tests/` and run with `pytest` (no real HA installation required).
+
+**Approach:** The HA package is stubbed out via `sys.modules` patching in `tests/conftest.py`. Stub classes replace `DataUpdateCoordinator`, `CoordinatorEntity`, `SensorEntity`, and `dt_util` so the integration code can be imported and exercised using only `aiohttp`, `pytest`, and `pytest-asyncio`.
+
+**Coverage:**
+* `_event_covers_now` — all-day, timed, boundary conditions, Z-suffix UTC, unparseable datetimes
+* `_extract_state_and_attrs` — all location types, field presence/absence, unknown/missing type, operational extras
+* `_parse_events` — empty list, single event, multi-event selection, `consider_none_outside_hours` both ways
+* `WorkingLocationCoordinator._async_update_data` — success, 401 auth failure, non-401 HTTP error, generic exception, time window, calendar_id forwarding
+* `GoogleCalendarApiClient` — URL construction, query params, `raise_for_status`, HTTP error propagation
+* `WorkingLocationSensor` — native_value, extra_state_attributes, available logic, unique_id, entity name/icon
+
+**Running tests:**
+```bash
+python -m venv .venv && .venv/bin/pip install -r requirements_test.txt
+.venv/bin/python -m pytest
+```
+
 # Acceptance criteria
 * After OAuth setup, `sensor.working_location` appears and updates.
 * When the user sets working location to home/office/custom for today in Google Calendar UI, HA reflects the corresponding type and attributes as documented.

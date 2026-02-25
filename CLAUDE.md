@@ -66,9 +66,30 @@ custom_components/working_location/
 
 ## Testing
 
-No test framework is set up yet. When adding tests, follow HA's convention of using `pytest` with `pytest-homeassistant-custom-component` for custom integration testing.
+Tests live in `tests/` and use `pytest` + `pytest-asyncio`. **No real HA installation is required.**
 
-To run tests once configured:
+### Strategy
+`tests/conftest.py` patches `sys.modules` at load time, replacing every `homeassistant.*` import with lightweight stubs:
+- `StubDataUpdateCoordinator` / `StubCoordinatorEntity` / `StubSensorEntity` — minimal base classes that support generic subscript syntax (`[T]`) and store just enough state for tests
+- `StubDtUtil` — drop-in for `homeassistant.util.dt`; `parse_datetime` uses `datetime.fromisoformat` (handles `Z` suffix)
+- Exception stubs for `UpdateFailed`, `ConfigEntryAuthFailed`, `ConfigEntryNotReady`
+
+`aiohttp` is a real dependency (it's used at import time in coordinator.py and api.py).
+
+### Running
 ```bash
-pytest tests/
+python -m venv .venv && .venv/bin/pip install -r requirements_test.txt
+.venv/bin/python -m pytest          # all tests
+.venv/bin/python -m pytest -v       # verbose
 ```
+
+### Test files
+| File | What it tests |
+|---|---|
+| `tests/conftest.py` | HA stub setup (shared by all tests) |
+| `tests/test_coordinator.py` | `_event_covers_now`, `_extract_state_and_attrs`, `_parse_events`, coordinator error handling + time window |
+| `tests/test_api.py` | URL construction, query params, HTTP error propagation |
+| `tests/test_sensor.py` | native_value, extra_state_attributes, available, unique_id |
+
+### Bug found and fixed during test writing
+`_extract_state_and_attrs` was setting `customLocation_label = None` via `.get("label")` when the `label` key was absent. Fixed to use `if "label" in cl` so absent fields are omitted, matching the spec ("omit fields not present").
