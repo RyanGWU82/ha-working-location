@@ -1,5 +1,6 @@
 {
   "name": "Google Calendar Working Location",
   "render_readme": true,
-  "homeassistant": "2024.1.0"
+  "homeassistant": "2024.1.0",
+  "pre_release": true
 }
