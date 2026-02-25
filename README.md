@@ -23,7 +23,7 @@ A Home Assistant custom integration that exposes your **Google Calendar working 
 ### Via HACS (recommended)
 
 1. In HACS, go to **Integrations → Custom repositories**.
-2. Add `https://github.com/ryanmcgrath/ha-working-location` as an **Integration**.
+2. Add `https://github.com/RyanGWU82/ha-working-location` as an **Integration**.
 3. Install **Google Calendar Working Location** from the HACS store.
 4. Restart Home Assistant.
 

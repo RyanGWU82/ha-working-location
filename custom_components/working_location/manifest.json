@@ -7,5 +7,5 @@
   "dependencies": ["application_credentials"],
   "iot_class": "cloud_polling",
   "config_flow": true,
-  "documentation": "https://github.com/ryanmcgrath/ha-working-location"
+  "documentation": "https://github.com/RyanGWU82/ha-working-location"
 }
