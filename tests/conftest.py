@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import sys
 import types
-from datetime import datetime, timezone, timedelta
+from dataclasses import dataclass, field
+from datetime import date, datetime, timezone, timedelta
+from typing import Any
 from unittest.mock import MagicMock
 
 
@@ -58,6 +60,22 @@ class StubCoordinatorEntity:
 
 class StubSensorEntity:
     """Minimal stand-in for SensorEntity."""
+
+
+@dataclass
+class CalendarEvent:
+    """Stub for homeassistant.components.calendar.CalendarEvent."""
+
+    start: date | datetime
+    end: date | datetime
+    summary: str
+    description: str | None = None
+    uid: str | None = None
+    location: str | None = None
+
+
+class StubCalendarEntity:
+    """Minimal stand-in for CalendarEntity."""
 
 
 # ---------------------------------------------------------------------------
@@ -117,6 +135,11 @@ _HA_MODULES: dict[str, object] = {
     "homeassistant.components.sensor": _mod(
         "homeassistant.components.sensor",
         SensorEntity=StubSensorEntity,
+    ),
+    "homeassistant.components.calendar": _mod(
+        "homeassistant.components.calendar",
+        CalendarEntity=StubCalendarEntity,
+        CalendarEvent=CalendarEvent,
     ),
     "homeassistant.util": _util_mod,
     # Make `from homeassistant.util import dt as dt_util` resolve to StubDtUtil
