@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 from custom_components.working_location.calendar import (
     WorkingLocationCalendar,
     _build_calendar_event,
+    _deduplicate_by_day,
 )
 
 
@@ -38,6 +39,64 @@ def _make_calendar(data=None, calendar_id="primary"):
     cal._calendar_id = calendar_id
     cal._attr_unique_id = f"{entry.entry_id}_working_location_cal"
     return cal
+
+
+# ---------------------------------------------------------------------------
+# _deduplicate_by_day
+# ---------------------------------------------------------------------------
+
+def _raw(date_str, recurring=False, event_type="homeOffice", event_id="ev"):
+    event = {
+        "id": event_id,
+        "start": {"date": date_str},
+        "end": {"date": date_str},
+        "workingLocationProperties": {"type": event_type},
+    }
+    if recurring:
+        event["recurringEventId"] = "parent123"
+    return event
+
+
+def test_deduplicate_keeps_standalone_over_recurring():
+    recurring = _raw("2026-03-14", recurring=True, event_type="homeOffice", event_id="rec")
+    standalone = _raw("2026-03-14", recurring=False, event_type="officeLocation", event_id="std")
+    result = _deduplicate_by_day([recurring, standalone])
+    assert len(result) == 1
+    assert result[0]["id"] == "std"
+
+
+def test_deduplicate_keeps_recurring_when_no_standalone():
+    recurring = _raw("2026-03-14", recurring=True, event_id="rec")
+    result = _deduplicate_by_day([recurring])
+    assert len(result) == 1
+    assert result[0]["id"] == "rec"
+
+
+def test_deduplicate_preserves_split_day_standalones():
+    # Two standalone events on the same day (genuine split) — both kept
+    a = _raw("2026-03-14", recurring=False, event_id="a")
+    b = _raw("2026-03-14", recurring=False, event_id="b")
+    result = _deduplicate_by_day([a, b])
+    assert len(result) == 2
+
+
+def test_deduplicate_across_multiple_days():
+    # Day 1: recurring + standalone → keep standalone
+    # Day 2: only recurring → keep it
+    day1_rec = _raw("2026-03-14", recurring=True, event_id="d1rec")
+    day1_std = _raw("2026-03-14", recurring=False, event_type="officeLocation", event_id="d1std")
+    day2_rec = _raw("2026-03-15", recurring=True, event_id="d2rec")
+    result = _deduplicate_by_day([day1_rec, day1_std, day2_rec])
+    assert len(result) == 2
+    ids = {e["id"] for e in result}
+    assert ids == {"d1std", "d2rec"}
+
+
+def test_deduplicate_preserves_order():
+    events = [_raw(f"2026-03-{d:02d}", event_id=f"ev{d}") for d in range(14, 18)]
+    result = _deduplicate_by_day(events)
+    dates = [e["start"]["date"] for e in result]
+    assert dates == sorted(dates)
 
 
 # ---------------------------------------------------------------------------

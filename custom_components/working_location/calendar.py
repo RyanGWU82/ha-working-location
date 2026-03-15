@@ -90,7 +90,7 @@ class WorkingLocationCalendar(CoordinatorEntity[WorkingLocationCoordinator], Cal
             return []
 
         events: list[CalendarEvent] = []
-        for raw in response.get("items", []):
+        for raw in _deduplicate_by_day(response.get("items", [])):
             start = raw.get("start", {})
             end = raw.get("end", {})
             start_str = start.get("dateTime") or start.get("date")
@@ -100,6 +100,34 @@ class WorkingLocationCalendar(CoordinatorEntity[WorkingLocationCoordinator], Cal
             if cal_event is not None:
                 events.append(cal_event)
         return events
+
+
+def _deduplicate_by_day(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """For each calendar day, prefer standalone events over recurring instances.
+
+    When a user overrides a default recurring working location, the Google
+    Calendar API returns both the recurring default instance and the standalone
+    override. Dropping recurring instances (those with ``recurringEventId``) for
+    any day that also has a standalone event keeps only the intentional choice.
+    """
+    from collections import defaultdict
+
+    def _day_key(event: dict[str, Any]) -> str:
+        start = event.get("start", {})
+        dt = start.get("dateTime") or start.get("date", "")
+        return dt[:10]  # YYYY-MM-DD
+
+    by_day: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for event in events:
+        by_day[_day_key(event)].append(event)
+
+    result: list[dict[str, Any]] = []
+    for day_events in by_day.values():
+        standalone = [e for e in day_events if not e.get("recurringEventId")]
+        result.extend(standalone if standalone else day_events)
+
+    result.sort(key=lambda e: (e.get("start", {}).get("dateTime") or e.get("start", {}).get("date", "")))
+    return result
 
 
 def _build_calendar_event(
