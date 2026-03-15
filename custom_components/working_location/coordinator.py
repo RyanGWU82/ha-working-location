@@ -77,12 +77,40 @@ class WorkingLocationCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(f"Unexpected error fetching working location: {err}") from err
 
         events: list[dict[str, Any]] = response.get("items", [])
+        events = _deduplicate_by_day(events)
         return _parse_events(events, now, self._calendar_id, self._consider_none_outside_hours)
 
 
 # ---------------------------------------------------------------------------
 # Pure parsing helpers (no HA imports needed, easy to unit-test)
 # ---------------------------------------------------------------------------
+
+def _deduplicate_by_day(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """For each calendar day, prefer standalone events over recurring instances.
+
+    When a user overrides a default recurring working location, the Google
+    Calendar API returns both the recurring default instance and the standalone
+    override. Dropping recurring instances (those with ``recurringEventId``) for
+    any day that also has a standalone event keeps only the intentional choice.
+    """
+    from collections import defaultdict
+
+    def _day_key(event: dict[str, Any]) -> str:
+        start = event.get("start", {})
+        dt = start.get("dateTime") or start.get("date", "")
+        return dt[:10]
+
+    by_day: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for event in events:
+        by_day[_day_key(event)].append(event)
+
+    result: list[dict[str, Any]] = []
+    for day_events in by_day.values():
+        standalone = [e for e in day_events if not e.get("recurringEventId")]
+        result.extend(standalone if standalone else day_events)
+
+    result.sort(key=lambda e: (e.get("start", {}).get("dateTime") or e.get("start", {}).get("date", "")))
+    return result
 
 def _parse_events(
     events: list[dict[str, Any]],

@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock
 from custom_components.working_location.calendar import (
     WorkingLocationCalendar,
     _build_calendar_event,
-    _deduplicate_by_day,
 )
+from custom_components.working_location.coordinator import _deduplicate_by_day
 
 
 # ---------------------------------------------------------------------------

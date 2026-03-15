@@ -10,6 +10,7 @@ import pytest
 # conftest.py has already patched sys.modules before these imports run.
 from custom_components.working_location.coordinator import (
     WorkingLocationCoordinator,
+    _deduplicate_by_day,
     _event_covers_now,
     _extract_state_and_attrs,
     _parse_events,
@@ -484,3 +485,42 @@ class TestCoordinatorUpdateData:
 
         call_args = mock_client.async_get_working_location_events.call_args[0]
         assert call_args[0] == "my_work_cal"
+
+
+# ---------------------------------------------------------------------------
+# _deduplicate_by_day
+# ---------------------------------------------------------------------------
+
+def _raw_event(date_str, recurring=False, event_type="homeOffice", event_id="ev"):
+    event = {
+        "id": event_id,
+        "start": {"date": date_str},
+        "end": {"date": date_str},
+        "workingLocationProperties": {"type": event_type},
+    }
+    if recurring:
+        event["recurringEventId"] = "parent123"
+    return event
+
+
+def test_dedup_prefers_standalone_over_recurring():
+    recurring = _raw_event("2024-01-15", recurring=True, event_type="homeOffice", event_id="rec")
+    standalone = _raw_event("2024-01-15", recurring=False, event_type="officeLocation", event_id="std")
+    result = _deduplicate_by_day([recurring, standalone])
+    assert len(result) == 1
+    assert result[0]["id"] == "std"
+
+
+def test_dedup_keeps_recurring_when_no_standalone():
+    recurring = _raw_event("2024-01-15", recurring=True)
+    result = _deduplicate_by_day([recurring])
+    assert len(result) == 1
+
+
+def test_dedup_parse_events_sees_only_standalone():
+    """End-to-end: coordinator parsing uses the standalone override, not the recurring default."""
+    recurring = _raw_event("2024-01-15", recurring=True, event_type="homeOffice", event_id="rec")
+    standalone = _raw_event("2024-01-15", recurring=False, event_type="officeLocation", event_id="std")
+    deduplicated = _deduplicate_by_day([recurring, standalone])
+    result = _parse_events(deduplicated, _NOW, "primary", False)
+    assert result["state"] == STATE_OFFICE_LOCATION
