@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DEFAULT_CALENDAR_ID, CONF_CALENDAR_ID, DOMAIN
+from .const import DEFAULT_CALENDAR_ID, CONF_CALENDAR_ID, DOMAIN, VALID_STATES
 from .coordinator import WorkingLocationCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +59,9 @@ class WorkingLocationSensor(CoordinatorEntity[WorkingLocationCoordinator], Senso
         """Return working location details as state attributes."""
         if self.coordinator.data is None:
             return {}
-        return self.coordinator.data.get("attributes", {})
+        attrs = dict(self.coordinator.data.get("attributes", {}))
+        attrs["is_workday"] = self.coordinator.data.get("state") in VALID_STATES
+        return attrs
 
     @property
     def available(self) -> bool:

@@ -26,6 +26,7 @@ The integration is configured via the UI. User provides Google OAuth client cred
 * event_id (the event’s id)
 * start / end (RFC3339 from event.start / event.end; all-day vs timed supported)
 * calendar_id (always primary unless you later add an option)
+* is_workday (bool) — `true` when state is one of the three location types (`homeOffice`, `officeLocation`, `customLocation`); `false` when state is `none` or `unknown`
 # Configuration / options
 **Initial config flow:** OAuth only — Application Credentials selection and OAuth dance. No optional fields here.
 

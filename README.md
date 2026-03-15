@@ -95,6 +95,7 @@ After setup, click **Configure** on the integration card to adjust:
 | `start` | Event start (RFC3339 or date string) |
 | `end` | Event end (RFC3339 or date string) |
 | `calendar_id` | Calendar queried |
+| `is_workday` | `true` if state is `homeOffice`, `officeLocation`, or `customLocation`; `false` if `none` or `unknown` |
 
 ## How it works
 

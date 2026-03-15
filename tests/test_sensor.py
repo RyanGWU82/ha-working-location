@@ -10,6 +10,7 @@ from custom_components.working_location.sensor import WorkingLocationSensor
 from custom_components.working_location.const import (
     STATE_HOME_OFFICE,
     STATE_OFFICE_LOCATION,
+    STATE_CUSTOM_LOCATION,
     STATE_NONE,
     STATE_UNKNOWN,
 )
@@ -74,7 +75,7 @@ class TestWorkingLocationSensorValue:
         }
         sensor = _make_sensor(state=STATE_HOME_OFFICE, attrs=attrs)
         result = sensor.extra_state_attributes
-        assert result == attrs
+        assert result == {**attrs, "is_workday": True}
 
     def test_extra_state_attributes_empty_when_coordinator_data_is_none(self):
         coord = MagicMock()
@@ -83,12 +84,23 @@ class TestWorkingLocationSensorValue:
         sensor = WorkingLocationSensor(coord, _make_entry(), "primary")
         assert sensor.extra_state_attributes == {}
 
+    @pytest.mark.parametrize("state,expected", [
+        (STATE_HOME_OFFICE, True),
+        (STATE_OFFICE_LOCATION, True),
+        (STATE_CUSTOM_LOCATION, True),
+        (STATE_NONE, False),
+        (STATE_UNKNOWN, False),
+    ])
+    def test_is_workday_attribute(self, state, expected):
+        sensor = _make_sensor(state=state)
+        assert sensor.extra_state_attributes["is_workday"] is expected
+
     def test_extra_state_attributes_empty_dict_when_attributes_key_missing(self):
         coord = MagicMock()
         coord.data = {"state": STATE_NONE}  # no "attributes" key
         coord.last_update_success = True
         sensor = WorkingLocationSensor(coord, _make_entry(), "primary")
-        assert sensor.extra_state_attributes == {}
+        assert sensor.extra_state_attributes == {"is_workday": False}
 
 
 class TestWorkingLocationSensorAvailability:
