@@ -104,7 +104,7 @@ The integration also creates a `calendar.working_location` entity. Add it to a *
 
 - The current event is derived from the same coordinator data as the sensor (no extra API call).
 - When you scroll to other dates on the calendar card, the integration fetches that date range directly from the Google Calendar API.
-- Event titles shown on the calendar: **Home Office**, **Office**, **Custom Location**, or **Not Working**.
+- Event titles shown on the calendar: **Working from Home**, **Working from Office**, or **Working from Elsewhere**. Days with no working location set (or an unrecognised type) are not shown.
 
 ## How it works
 

@@ -39,11 +39,11 @@ Exposes working location events to the HA Calendar UI.
 **Event summary mapping:**
 | `workingLocationProperties.type` | Summary shown in calendar |
 |---|---|
-| `homeOffice` | Home Office |
-| `officeLocation` | Office |
-| `customLocation` | Custom Location |
-| `none` | Not Working |
-| *(other)* | raw type string |
+| `homeOffice` | Working from Home |
+| `officeLocation` | Working from Office |
+| `customLocation` | Working from Elsewhere |
+| `none` | *(not shown on calendar)* |
+| *(other)* | *(not shown on calendar)* |
 
 All-day events (`start.date`) and timed events (`start.dateTime`) are both supported and passed through to HA as `date` or `datetime` objects respectively.
 

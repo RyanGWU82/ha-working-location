@@ -53,7 +53,7 @@ def test_build_calendar_event_timed():
     )
     assert ev is not None
     assert isinstance(ev.start, datetime)
-    assert ev.summary == "Home Office"
+    assert ev.summary == "Working from Home"
     assert ev.uid == "abc123"
 
 
@@ -62,13 +62,15 @@ def test_build_calendar_event_allday():
     assert ev is not None
     assert isinstance(ev.start, date)
     assert not isinstance(ev.start, datetime)
-    assert ev.summary == "Office"
+    assert ev.summary == "Working from Office"
 
 
 def test_build_calendar_event_unknown_type():
-    ev = _build_calendar_event("2026-03-14", "2026-03-15", "someNewType", None)
-    assert ev is not None
-    assert ev.summary == "someNewType"
+    assert _build_calendar_event("2026-03-14", "2026-03-15", "someNewType", None) is None
+
+
+def test_build_calendar_event_none_type():
+    assert _build_calendar_event("2026-03-14", "2026-03-15", "none", None) is None
 
 
 def test_build_calendar_event_none_inputs():
@@ -101,7 +103,7 @@ def test_event_property_timed():
     cal = _make_calendar(data)
     ev = cal.event
     assert ev is not None
-    assert ev.summary == "Home Office"
+    assert ev.summary == "Working from Home"
     assert ev.uid == "ev1"
 
 
@@ -149,8 +151,41 @@ async def test_async_get_events_returns_events():
     events = await cal.async_get_events(None, start, end)
 
     assert len(events) == 2
-    assert events[0].summary == "Home Office"
-    assert events[1].summary == "Office"
+    assert events[0].summary == "Working from Home"
+    assert events[1].summary == "Working from Office"
+
+
+@pytest.mark.asyncio
+async def test_async_get_events_filters_none_and_unknown():
+    cal = _make_calendar()
+    api_response = {
+        "items": [
+            {
+                "id": "ev1",
+                "start": {"date": "2026-03-14"},
+                "end": {"date": "2026-03-15"},
+                "workingLocationProperties": {"type": "none"},
+            },
+            {
+                "id": "ev2",
+                "start": {"date": "2026-03-15"},
+                "end": {"date": "2026-03-16"},
+                "workingLocationProperties": {"type": "someUnknownType"},
+            },
+            {
+                "id": "ev3",
+                "start": {"date": "2026-03-16"},
+                "end": {"date": "2026-03-17"},
+                "workingLocationProperties": {"type": "customLocation"},
+            },
+        ]
+    }
+    cal.coordinator._api_client.async_get_working_location_events = AsyncMock(
+        return_value=api_response
+    )
+    events = await cal.async_get_events(None, datetime(2026, 3, 14), datetime(2026, 3, 17))
+    assert len(events) == 1
+    assert events[0].summary == "Working from Elsewhere"
 
 
 @pytest.mark.asyncio

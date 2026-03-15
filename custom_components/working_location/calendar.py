@@ -21,10 +21,9 @@ from .coordinator import WorkingLocationCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 _LOCATION_SUMMARIES: dict[str, str] = {
-    "homeOffice": "Home Office",
-    "officeLocation": "Office",
-    "customLocation": "Custom Location",
-    "none": "Not Working",
+    "homeOffice": "Working from Home",
+    "officeLocation": "Working from Office",
+    "customLocation": "Working from Elsewhere",
 }
 
 
@@ -129,5 +128,7 @@ def _build_calendar_event(
         except ValueError:
             return None
 
-    summary = _LOCATION_SUMMARIES.get(loc_type, loc_type)
+    summary = _LOCATION_SUMMARIES.get(loc_type)
+    if summary is None:
+        return None
     return CalendarEvent(start=start, end=end, summary=summary, uid=event_id)
