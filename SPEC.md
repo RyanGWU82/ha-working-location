@@ -2,7 +2,7 @@
 #computers
 
 # Goal
-Expose a single sensor entity, `sensor.working_location`, whose state and attributes reflect Google Calendar “working location” for the current day by reading the user’s primary calendar via the Google Calendar API. Working location is represented by events with `eventType: "workingLocation"` and a `workingLocationProperties` object.
+Expose a sensor entity (`sensor.working_location`) and a calendar entity (`calendar.working_location`) that reflect Google Calendar “working location” for the current day by reading the user’s primary calendar via the Google Calendar API. Working location is represented by events with `eventType: “workingLocation”` and a `workingLocationProperties` object.
 # Non-goals
 No second calendar. No manual “WFH” events. No write-back to Google Calendar.
 # User experience
@@ -27,6 +27,26 @@ The integration is configured via the UI. User provides Google OAuth client cred
 * start / end (RFC3339 from event.start / event.end; all-day vs timed supported)
 * calendar_id (always primary unless you later add an option)
 * is_workday (bool) — `true` when state is one of the three location types (`homeOffice`, `officeLocation`, `customLocation`); `false` when state is `none` or `unknown`
+# Calendar entity
+**Entity name:** `calendar.working_location`
+
+Exposes working location events to the HA Calendar UI.
+
+**`event` property:** returns the currently-active working location event (derived from coordinator data — no extra API call).
+
+**`async_get_events(start_date, end_date)`:** called by the HA Calendar card when rendering a date range. Makes a direct API call with the requested range (same parameters as the coordinator but with caller-supplied `timeMin`/`timeMax`).
+
+**Event summary mapping:**
+| `workingLocationProperties.type` | Summary shown in calendar |
+|---|---|
+| `homeOffice` | Home Office |
+| `officeLocation` | Office |
+| `customLocation` | Custom Location |
+| `none` | Not Working |
+| *(other)* | raw type string |
+
+All-day events (`start.date`) and timed events (`start.dateTime`) are both supported and passed through to HA as `date` or `datetime` objects respectively.
+
 # Configuration / options
 **Initial config flow:** OAuth only — Application Credentials selection and OAuth dance. No optional fields here.
 
@@ -68,6 +88,7 @@ Repo root:
 * `api.py` (thin Calendar API client wrapper using aiohttp)
 * `coordinator.py` (DataUpdateCoordinator + parsing)
 * `sensor.py` (SensorEntity, state + attributes mapping)
+* `calendar.py` (CalendarEntity, event + async_get_events)
 * `strings.json` / `translations/en.json` (UI text)
 # Testing strategy
 Tests live in `tests/` and run with `pytest` (no real HA installation required).
@@ -81,6 +102,8 @@ Tests live in `tests/` and run with `pytest` (no real HA installation required).
 * `WorkingLocationCoordinator._async_update_data` — success, 401 auth failure, non-401 HTTP error, generic exception, time window, calendar_id forwarding
 * `GoogleCalendarApiClient` — URL construction, query params, `raise_for_status`, HTTP error propagation
 * `WorkingLocationSensor` — native_value, extra_state_attributes, available logic, unique_id, entity name/icon
+* `WorkingLocationCalendar` — event property (timed/all-day/no-data), async_get_events (success, empty, API error, unexpected error)
+* `_build_calendar_event` — timed events, all-day events, unknown type, None inputs, invalid date/datetime strings
 
 **Running tests:**
 ```bash

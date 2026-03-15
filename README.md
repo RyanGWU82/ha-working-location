@@ -9,6 +9,7 @@ A Home Assistant custom integration that exposes your **Google Calendar working 
 ## Features
 
 - `sensor.working_location` with states: `homeOffice`, `officeLocation`, `customLocation`, `none`, `unknown`
+- `calendar.working_location` — shows working location events on the HA Calendar card
 - Detailed attributes mirroring Google's `workingLocationProperties` (building ID, floor, desk, custom label, etc.)
 - Automatic token refresh via Home Assistant's OAuth2 helpers — no manual re-authentication
 - Configurable calendar ID, polling interval, and "none outside working hours" behaviour
@@ -96,6 +97,14 @@ After setup, click **Configure** on the integration card to adjust:
 | `end` | Event end (RFC3339 or date string) |
 | `calendar_id` | Calendar queried |
 | `is_workday` | `true` if state is `homeOffice`, `officeLocation`, or `customLocation`; `false` if `none` or `unknown` |
+
+## Calendar entity
+
+The integration also creates a `calendar.working_location` entity. Add it to a **Calendar card** in your dashboard to see your working location events displayed alongside other calendar entries.
+
+- The current event is derived from the same coordinator data as the sensor (no extra API call).
+- When you scroll to other dates on the calendar card, the integration fetches that date range directly from the Google Calendar API.
+- Event titles shown on the calendar: **Home Office**, **Office**, **Custom Location**, or **Not Working**.
 
 ## How it works
 
