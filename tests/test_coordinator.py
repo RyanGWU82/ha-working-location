@@ -441,6 +441,25 @@ class TestCoordinatorUpdateData:
             with pytest.raises(ConfigEntryAuthFailed):
                 await coord._async_update_data()
 
+    async def test_403_raises_config_entry_auth_failed(self):
+        from aiohttp import ClientResponseError
+
+        class _Err403(ClientResponseError):
+            def __init__(self):
+                self.status = 403
+                self.message = "Forbidden"
+                self.headers = None
+                self.history = ()
+                self.request_info = MagicMock()
+
+        mock_client = AsyncMock()
+        mock_client.async_get_working_location_events.side_effect = _Err403()
+        coord = self._make_coordinator(mock_client)
+
+        with self._patch_dt_util(_NOW):
+            with pytest.raises(ConfigEntryAuthFailed):
+                await coord._async_update_data()
+
     async def test_non_401_http_error_raises_update_failed(self):
         from aiohttp import ClientResponseError
 

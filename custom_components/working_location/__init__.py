@@ -42,12 +42,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await session.async_ensure_token_valid()
     except ClientResponseError as err:
-        if err.status == 401:
+        if err.status in (401, 403):
             raise ConfigEntryAuthFailed(
                 "Google Calendar credentials are invalid or have been revoked"
             ) from err
         raise ConfigEntryNotReady(
-            f"Could not connect to Google Calendar API: {err}"
+            f"Could not connect to Google Calendar API (HTTP {err.status}): {err}"
         ) from err
     except Exception as err:
         raise ConfigEntryNotReady(

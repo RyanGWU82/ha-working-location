@@ -66,12 +66,12 @@ class WorkingLocationCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._calendar_id, time_min, time_max
             )
         except ClientResponseError as err:
-            if err.status == 401:
+            if err.status in (401, 403):
                 raise ConfigEntryAuthFailed(
                     "Google Calendar token is no longer valid"
                 ) from err
             raise UpdateFailed(
-                f"Error communicating with Google Calendar API: {err}"
+                f"Error communicating with Google Calendar API (HTTP {err.status}): {err}"
             ) from err
         except Exception as err:
             raise UpdateFailed(f"Unexpected error fetching working location: {err}") from err
