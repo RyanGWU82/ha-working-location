@@ -161,6 +161,11 @@ def _event_covers_now(event: dict[str, Any], now: datetime) -> bool:
         end_dt = dt_util.parse_datetime(end["dateTime"])
         if start_dt is not None and end_dt is not None:
             return start_dt <= now < end_dt
+        _LOGGER.debug(
+            "Failed to parse event times: start=%s, end=%s",
+            start.get("dateTime"),
+            end.get("dateTime"),
+        )
         return False
 
     if "date" in start:

@@ -146,6 +146,13 @@ def test_build_calendar_event_invalid_datetime():
     assert _build_calendar_event("2026-03-14Tbadtime", "2026-03-14T17:00:00+00:00", "homeOffice", None) is None
 
 
+def test_build_calendar_event_invalid_datetime_logs_debug():
+    from unittest.mock import patch
+    with patch("custom_components.working_location.calendar._LOGGER") as mock_logger:
+        _build_calendar_event("2026-03-14Tbadtime", "2026-03-14T17:00:00+00:00", "homeOffice", None)
+    mock_logger.debug.assert_called_once()
+
+
 # ---------------------------------------------------------------------------
 # WorkingLocationCalendar.event property
 # ---------------------------------------------------------------------------

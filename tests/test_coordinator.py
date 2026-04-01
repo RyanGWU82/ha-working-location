@@ -140,6 +140,16 @@ class TestEventCoversNow:
         }
         assert _event_covers_now(event, _NOW) is False
 
+    def test_timed_event_unparseable_datetime_logs_debug(self):
+        from unittest.mock import patch
+        event = {
+            "start": {"dateTime": "not-a-date"},
+            "end": {"dateTime": "also-not-a-date"},
+        }
+        with patch("custom_components.working_location.coordinator._LOGGER") as mock_logger:
+            _event_covers_now(event, _NOW)
+        mock_logger.debug.assert_called_once()
+
     def test_timed_event_with_z_utc_suffix(self):
         # Google Calendar sometimes returns Z instead of +00:00.
         now = datetime(2024, 1, 15, 12, 0, tzinfo=UTC)

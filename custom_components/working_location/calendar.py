@@ -119,6 +119,11 @@ def _build_calendar_event(
         start_dt = dt_util.parse_datetime(start_str)
         end_dt = dt_util.parse_datetime(end_str)
         if start_dt is None or end_dt is None:
+            _LOGGER.debug(
+                "Failed to parse calendar event times: start=%s, end=%s",
+                start_str,
+                end_str,
+            )
             return None
         start, end = start_dt, end_dt
     else:
