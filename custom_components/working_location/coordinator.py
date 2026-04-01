@@ -100,6 +100,11 @@ def _deduplicate_by_day(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         dt = start.get("dateTime") or start.get("date", "")
         return dt[:10]
 
+    events = sorted(
+        events,
+        key=lambda e: (e.get("start", {}).get("dateTime") or e.get("start", {}).get("date", "")),
+    )
+
     by_day: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for event in events:
         by_day[_day_key(event)].append(event)
@@ -109,7 +114,6 @@ def _deduplicate_by_day(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         standalone = [e for e in day_events if not e.get("recurringEventId")]
         result.extend(standalone if standalone else day_events)
 
-    result.sort(key=lambda e: (e.get("start", {}).get("dateTime") or e.get("start", {}).get("date", "")))
     return result
 
 def _parse_events(

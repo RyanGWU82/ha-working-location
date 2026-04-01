@@ -517,6 +517,14 @@ def test_dedup_keeps_recurring_when_no_standalone():
     assert len(result) == 1
 
 
+def test_dedup_multi_day_reverse_input_preserves_sorted_order():
+    """Events passed in reverse chronological order must come out sorted."""
+    events = [_raw_event(f"2024-01-{d:02d}", event_id=f"ev{d}") for d in range(18, 14, -1)]
+    result = _deduplicate_by_day(events)
+    dates = [e["start"]["date"] for e in result]
+    assert dates == sorted(dates)
+
+
 def test_dedup_parse_events_sees_only_standalone():
     """End-to-end: coordinator parsing uses the standalone override, not the recurring default."""
     recurring = _raw_event("2024-01-15", recurring=True, event_type="homeOffice", event_id="rec")
