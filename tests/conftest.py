@@ -85,6 +85,10 @@ class StubCalendarEntity:
 class StubDtUtil:
     """Stand-in for homeassistant.util.dt accessed as ``dt_util``."""
 
+    # Default timezone mirrors real HA's configured local TZ. Tests that need
+    # a specific TZ should patch dt_util directly rather than mutating this.
+    _tz = timezone.utc
+
     @staticmethod
     def parse_datetime(s: str) -> datetime | None:
         """Parse RFC3339 datetime string; handles Z suffix."""
@@ -95,9 +99,9 @@ class StubDtUtil:
         except (ValueError, AttributeError):
             return None
 
-    @staticmethod
-    def now() -> datetime:
-        return datetime.now(timezone.utc)
+    @classmethod
+    def now(cls) -> datetime:
+        return datetime.now(cls._tz)
 
 
 # ---------------------------------------------------------------------------

@@ -150,6 +150,16 @@ class TestEventCoversNow:
             _event_covers_now(event, _NOW)
         mock_logger.debug.assert_called_once()
 
+    def test_event_covers_now_with_non_utc_timezone(self):
+        # "now" in +05:30 IST; event stored in UTC — timezone-aware comparison must work
+        ist = timezone(timedelta(hours=5, minutes=30))
+        now = datetime(2024, 1, 15, 17, 0, tzinfo=ist)  # 11:30 UTC
+        event = {
+            "start": {"dateTime": "2024-01-15T09:00:00+00:00"},
+            "end": {"dateTime": "2024-01-15T17:00:00+00:00"},
+        }
+        assert _event_covers_now(event, now) is True
+
     def test_timed_event_with_z_utc_suffix(self):
         # Google Calendar sometimes returns Z instead of +00:00.
         now = datetime(2024, 1, 15, 12, 0, tzinfo=UTC)
